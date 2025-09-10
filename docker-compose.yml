@@ -14,8 +14,12 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_ENABLE_JMX=yes
+      - KAFKA_JMX_PORT=5555
+      - KAFKA_JMX_HOSTNAME=kafka
     ports:
       - "9092:9092"
+      - "5555:5555"
     volumes:
       - kafka_data:/bitnami/kafka
     healthcheck:
@@ -23,6 +27,65 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  app:
+    build: .
+    container_name: kafkahello-app
+    environment:
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - SERVER_PORT=8080
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+
+  kafka-exporter:
+    image: bitnami/kafka-exporter:latest
+    container_name: kafka-exporter
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+
+  kafka-jmx-exporter:
+    image: sscaling/jmx-prometheus-exporter:latest
+    container_name: kafka-jmx-exporter
+    command: "5556 /config.yml"
+    volumes:
+      - ./jmx-exporter-kafka.yml:/config.yml:ro
+    ports:
+      - "5556:5556"
+    depends_on:
+      - kafka
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.retention.time=7d
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - kafka-jmx-exporter
+      - kafka-exporter
+      - app
+
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./provisioning/datasources/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml:ro
+      - ./provisioning/dashboards:/etc/grafana/provisioning/dashboards
+    depends_on:
+      - prometheus
 
 volumes:
   kafka_data:

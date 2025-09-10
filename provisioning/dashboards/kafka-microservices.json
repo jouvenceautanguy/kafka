@@ -1,0 +1,51 @@
+{
+  "uid": "kafka-ms",
+  "title": "Kafka Microservices Overview",
+  "schemaVersion": 38,
+  "version": 1,
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Messages Produced",
+      "gridPos": {"x":0,"y":0,"w":6,"h":4},
+      "targets": [
+        {"expr": "sum(increase(app_messages_produced_total[5m]))"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Messages Consumed",
+      "gridPos": {"x":6,"y":0,"w":6,"h":4},
+      "targets": [
+        {"expr": "sum(increase(app_messages_consumed_total[5m]))"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Publish Latency (p95)",
+      "gridPos": {"x":0,"y":4,"w":12,"h":6},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum(rate(app_publish_latency_seconds_bucket[5m])) by (le))"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Consume Latency (p95)",
+      "gridPos": {"x":0,"y":10,"w":12,"h":6},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum(rate(app_consume_latency_seconds_bucket[5m])) by (le))"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Consumer Lag (sum)",
+      "gridPos": {"x":0,"y":16,"w":6,"h":4},
+      "targets": [
+        {"expr": "sum(kafka_consumergroup_lag)"}
+      ]
+    }
+  ],
+  "templating": {"list": []},
+  "time": {"from": "now-15m", "to": "now"}
+}

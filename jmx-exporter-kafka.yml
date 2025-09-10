@@ -1,0 +1,48 @@
+startDelaySeconds: 0
+hostPort: kafka:5555
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+whitelistObjectNames: [
+  'kafka.server:*',
+  'kafka.controller:*',
+  'kafka.network:*',
+  'java.lang:*'
+]
+rules:
+  - pattern: 'kafka<type=(.+), name=(.+)PerSec\w*, topic=(.+)><>Count'
+    name: kafka_$1_$2_total
+    labels:
+      topic: "$3"
+    type: COUNTER
+  - pattern: 'kafka<type=(.+), name=(.+)PerSec\w*><>Count'
+    name: kafka_$1_$2_total
+    type: COUNTER
+  - pattern: 'kafka<type=(.+), name=(.+), topic=(.+), partition=(.+)><>Value'
+    name: kafka_$1_$2
+    labels:
+      topic: "$3"
+      partition: "$4"
+    type: GAUGE
+  - pattern: 'kafka<type=(.+), name=(.+), topic=(.+)><>Value'
+    name: kafka_$1_$2
+    labels:
+      topic: "$3"
+    type: GAUGE
+  - pattern: 'kafka<type=(.+), name=(.+)><>Value'
+    name: kafka_$1_$2
+    type: GAUGE
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage|NonHeapMemoryUsage><>(Committed|Init|Max|Used)'
+    name: jvm_memory_$2_bytes
+    labels:
+      area: "$1"
+    type: GAUGE
+  - pattern: 'java.lang<type=GarbageCollector, name=(.+)><>CollectionTime'
+    name: jvm_gc_collection_seconds_sum
+    labels:
+      gc: "$1"
+    type: COUNTER
+  - pattern: 'java.lang<type=GarbageCollector, name=(.+)><>CollectionCount'
+    name: jvm_gc_collection_seconds_count
+    labels:
+      gc: "$1"
+    type: COUNTER
