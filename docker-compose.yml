@@ -49,9 +49,11 @@ services:
       - kafka
 
   kafka-jmx-exporter:
-    image: sscaling/jmx-prometheus-exporter:latest
+    image: bitnami/jmx-exporter:latest
     container_name: kafka-jmx-exporter
-    command: "5556 /config.yml"
+    environment:
+      - JMX_EXPORTER_CONFIG=/config.yml
+      - JMX_EXPORTER_PORT=5556
     volumes:
       - ./jmx-exporter-kafka.yml:/config.yml:ro
     ports:
