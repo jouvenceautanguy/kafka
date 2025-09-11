@@ -130,9 +130,66 @@
       ]
     },
     {
+      "type": "timeseries",
+      "title": "CPU Load Tests",
+      "gridPos": {"x":0,"y":28,"w":12,"h":6},
+      "targets": [
+        {"expr": "sum(rate(app_cpu_busy_spin_total[1m]))", "legendFormat": "Busy Spin/sec"},
+        {"expr": "sum(rate(app_cpu_hash_total[1m]))", "legendFormat": "Hash SHA-256/sec"},
+        {"expr": "sum(rate(app_cpu_sort_total[1m]))", "legendFormat": "Array Sort/sec"},
+        {"expr": "sum(rate(app_cpu_matrix_total[1m]))", "legendFormat": "Matrix Multiply/sec"},
+        {"expr": "sum(rate(app_cpu_sieve_total[1m]))", "legendFormat": "Sieve/sec"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory Tests & Held Memory",
+      "gridPos": {"x":12,"y":28,"w":12,"h":6},
+      "targets": [
+        {"expr": "app_held_memory_mb", "legendFormat": "Held Memory (MB)"},
+        {"expr": "sum(rate(app_memory_allocated_total[1m]))", "legendFormat": "Allocations/sec"},
+        {"expr": "sum(rate(app_memory_released_total[1m]))", "legendFormat": "Releases/sec"}
+      ],
+      "yAxes": [{"unit": "MB", "min": 0}]
+    },
+    {
+      "type": "timeseries",
+      "title": "Test Latencies",
+      "gridPos": {"x":0,"y":34,"w":12,"h":6},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum(rate(app_cpu_test_latency_seconds_bucket[5m])) by (le))", "legendFormat": "CPU Test p95"},
+        {"expr": "histogram_quantile(0.95, sum(rate(app_memory_test_latency_seconds_bucket[5m])) by (le))", "legendFormat": "Memory Test p95"},
+        {"expr": "histogram_quantile(0.95, sum(rate(app_load_test_latency_seconds_bucket[5m])) by (le))", "legendFormat": "Load Test p95"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total CPU Tests",
+      "gridPos": {"x":12,"y":34,"w":4,"h":3},
+      "targets": [
+        {"expr": "app_cpu_tests_total"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total Memory Tests",
+      "gridPos": {"x":16,"y":34,"w":4,"h":3},
+      "targets": [
+        {"expr": "app_memory_tests_total"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Test Errors",
+      "gridPos": {"x":20,"y":34,"w":4,"h":3},
+      "targets": [
+        {"expr": "sum(app_cpu_test_errors_total) + sum(app_load_test_errors_total)"}
+      ]
+    },
+    {
       "type": "table",
       "title": "Consumer Groups Status",
-      "gridPos": {"x":0,"y":28,"w":24,"h":6},
+      "gridPos": {"x":0,"y":40,"w":24,"h":6},
       "targets": [
         {
           "expr": "kafka_consumergroup_current_offset",
