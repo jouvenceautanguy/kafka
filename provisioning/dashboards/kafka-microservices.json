@@ -8,7 +8,7 @@
     {
       "type": "stat",
       "title": "Messages Produced",
-      "gridPos": {"x":0,"y":0,"w":6,"h":4},
+      "gridPos": {"x":0,"y":0,"w":4,"h":4},
       "targets": [
         {"expr": "sum(increase(app_messages_produced_total[5m]))"}
       ]
@@ -16,36 +16,156 @@
     {
       "type": "stat",
       "title": "Messages Consumed",
-      "gridPos": {"x":6,"y":0,"w":6,"h":4},
+      "gridPos": {"x":4,"y":0,"w":4,"h":4},
       "targets": [
         {"expr": "sum(increase(app_messages_consumed_total[5m]))"}
       ]
     },
     {
-      "type": "timeseries",
-      "title": "Publish Latency (p95)",
-      "gridPos": {"x":0,"y":4,"w":12,"h":6},
+      "type": "stat",
+      "title": "Consumer Lag",
+      "gridPos": {"x":8,"y":0,"w":4,"h":4},
       "targets": [
-        {"expr": "histogram_quantile(0.95, sum(rate(app_publish_latency_seconds_bucket[5m])) by (le))"}
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "Consume Latency (p95)",
-      "gridPos": {"x":0,"y":10,"w":12,"h":6},
-      "targets": [
-        {"expr": "histogram_quantile(0.95, sum(rate(app_consume_latency_seconds_bucket[5m])) by (le))"}
+        {"expr": "sum(kafka_consumergroup_lag)"}
       ]
     },
     {
       "type": "stat",
-      "title": "Consumer Lag (sum)",
-      "gridPos": {"x":0,"y":16,"w":6,"h":4},
+      "title": "Kafka Bytes/sec",
+      "gridPos": {"x":12,"y":0,"w":4,"h":4},
       "targets": [
-        {"expr": "sum(kafka_consumergroup_lag)"}
+        {"expr": "sum(rate(kafka_server_brokertopicmetrics_bytesin_total[5m]))"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Kafka Requests/sec",
+      "gridPos": {"x":16,"y":0,"w":4,"h":4},
+      "targets": [
+        {"expr": "sum(rate(kafka_network_requestmetrics_totalrequests_total[5m]))"}
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Active Connections",
+      "gridPos": {"x":20,"y":0,"w":4,"h":4},
+      "targets": [
+        {"expr": "kafka_server_socket_server_metrics_connections_count"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Message Throughput (per sec)",
+      "gridPos": {"x":0,"y":4,"w":12,"h":6},
+      "targets": [
+        {"expr": "sum(rate(app_messages_produced_total[1m]))", "legendFormat": "Produced/sec"},
+        {"expr": "sum(rate(app_messages_consumed_total[1m]))", "legendFormat": "Consumed/sec"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka Network I/O",
+      "gridPos": {"x":12,"y":4,"w":12,"h":6},
+      "targets": [
+        {"expr": "sum(rate(kafka_server_brokertopicmetrics_bytesin_total[1m]))", "legendFormat": "Bytes In/sec"},
+        {"expr": "sum(rate(kafka_server_brokertopicmetrics_bytesout_total[1m]))", "legendFormat": "Bytes Out/sec"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latency (p95)",
+      "gridPos": {"x":0,"y":10,"w":12,"h":6},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum(rate(app_publish_latency_seconds_bucket[5m])) by (le))", "legendFormat": "Publish p95"},
+        {"expr": "histogram_quantile(0.95, sum(rate(app_consume_latency_seconds_bucket[5m])) by (le))", "legendFormat": "Consume p95"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka Topic Metrics",
+      "gridPos": {"x":12,"y":10,"w":12,"h":6},
+      "targets": [
+        {"expr": "sum(rate(kafka_server_brokertopicmetrics_messagesin_total[1m])) by (topic)", "legendFormat": "{{topic}} msgs/sec"},
+        {"expr": "sum(rate(kafka_server_brokertopicmetrics_bytesin_total[1m])) by (topic) / 1024", "legendFormat": "{{topic}} KB/sec"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU & Memory Usage",
+      "gridPos": {"x":0,"y":16,"w":12,"h":6},
+      "targets": [
+        {"expr": "rate(process_cpu_seconds_total[5m]) * 100", "legendFormat": "CPU %"},
+        {"expr": "jvm_memory_used_bytes{area=\"heap\"} / 1024 / 1024", "legendFormat": "Heap MB"},
+        {"expr": "jvm_memory_used_bytes{area=\"nonheap\"} / 1024 / 1024", "legendFormat": "Non-Heap MB"}
+      ],
+      "yAxes": [{"unit": "percent", "min": 0}]
+    },
+    {
+      "type": "timeseries",
+      "title": "GC Activity",
+      "gridPos": {"x":12,"y":16,"w":12,"h":6},
+      "targets": [
+        {"expr": "sum(rate(jvm_gc_collection_seconds_count[5m])) by (gc)", "legendFormat": "{{gc}} collections/sec"},
+        {"expr": "sum(rate(jvm_gc_collection_seconds_sum[5m])) by (gc)", "legendFormat": "{{gc}} time/sec"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Threads & Connections",
+      "gridPos": {"x":0,"y":22,"w":12,"h":6},
+      "targets": [
+        {"expr": "jvm_threads_live", "legendFormat": "Live Threads"},
+        {"expr": "jvm_threads_daemon", "legendFormat": "Daemon Threads"},
+        {"expr": "kafka_server_socket_server_metrics_connections_count", "legendFormat": "Kafka Connections"}
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka Controller & Replication",
+      "gridPos": {"x":12,"y":22,"w":12,"h":6},
+      "targets": [
+        {"expr": "kafka_controller_kafkacontroller_activebrokercount", "legendFormat": "Active Brokers"},
+        {"expr": "kafka_controller_kafkacontroller_offlinepartitionscount", "legendFormat": "Offline Partitions"},
+        {"expr": "kafka_server_replicamanager_leadercount", "legendFormat": "Leader Count"}
+      ]
+    },
+    {
+      "type": "table",
+      "title": "Consumer Groups Status",
+      "gridPos": {"x":0,"y":28,"w":24,"h":6},
+      "targets": [
+        {
+          "expr": "kafka_consumergroup_current_offset",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "Current Offset"
+        },
+        {
+          "expr": "kafka_consumergroup_lag",
+          "format": "table", 
+          "instant": true,
+          "legendFormat": "Lag"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
       ]
     }
   ],
-  "templating": {"list": []},
+  "templating": {
+    "list": [
+      {
+        "name": "topic",
+        "type": "query",
+        "query": "label_values(kafka_server_brokertopicmetrics_messagesin_total, topic)",
+        "refresh": 1,
+        "includeAll": true,
+        "multi": true
+      }
+    ]
+  },
   "time": {"from": "now-15m", "to": "now"}
 }
